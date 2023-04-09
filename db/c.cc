@@ -7,7 +7,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
-
 #include "rocksdb/c.h"
 
 #include <cstdlib>
@@ -2111,23 +2110,43 @@ class H : public WriteBatch::Handler {
   void* state_;
   void (*put_)(void*, const char* k, size_t klen, const char* v, size_t vlen);
   void (*deleted_)(void*, const char* k, size_t klen);
+  void (*delete_range_)(void*, const char* b, size_t blen, const char* e,
+                        size_t elen);
+  void (*merge_)(void*, const char* k, size_t klen, const char* v, size_t vlen);
+
   void Put(const Slice& key, const Slice& value) override {
     (*put_)(state_, key.data(), key.size(), value.data(), value.size());
   }
   void Delete(const Slice& key) override {
     (*deleted_)(state_, key.data(), key.size());
   }
+  void DeleteRange(const Slice& begin_key, const Slice& end_key) override {
+    if (delete_range_ != nullptr) {
+      (*delete_range_)(state_, begin_key.data(), begin_key.size(),
+                       end_key.data(), end_key.size());
+    }
+  }
+  void Merge(const Slice& key, const Slice& value) override {
+    if (merge_ != nullptr) {
+      (*merge_)(state_, key.data(), key.size(), value.data(), value.size());
+    }
+  }
 };
 
-void rocksdb_writebatch_iterate(rocksdb_writebatch_t* b, void* state,
-                                void (*put)(void*, const char* k, size_t klen,
-                                            const char* v, size_t vlen),
-                                void (*deleted)(void*, const char* k,
-                                                size_t klen)) {
+void rocksdb_writebatch_iterate(
+    rocksdb_writebatch_t* b, void* state,
+    void (*put)(void*, const char* k, size_t klen, const char* v, size_t vlen),
+    void (*deleted)(void*, const char* k, size_t klen),
+    void (*delete_range)(void*, const char* b, size_t blen, const char* e,
+                         size_t elen),
+    void (*merge)(void*, const char* k, size_t klen, const char* v,
+                  size_t vlen)) {
   H handler;
   handler.state_ = state;
   handler.put_ = put;
   handler.deleted_ = deleted;
+  handler.delete_range_ = delete_range;
+  handler.merge_ = merge;
   b->rep.Iterate(&handler);
 }
 

@@ -808,7 +808,11 @@ extern ROCKSDB_LIBRARY_API void rocksdb_writebatch_put_log_data(
 extern ROCKSDB_LIBRARY_API void rocksdb_writebatch_iterate(
     rocksdb_writebatch_t*, void* state,
     void (*put)(void*, const char* k, size_t klen, const char* v, size_t vlen),
-    void (*deleted)(void*, const char* k, size_t klen));
+    void (*deleted)(void*, const char* k, size_t klen),
+    void (*delete_range)(void*, const char* b, size_t blen, const char* e,
+                         size_t elen),
+    void (*merge)(void*, const char* k, size_t klen, const char* v,
+                  size_t vlen));
 extern ROCKSDB_LIBRARY_API const char* rocksdb_writebatch_data(
     rocksdb_writebatch_t*, size_t* size);
 extern ROCKSDB_LIBRARY_API void rocksdb_writebatch_set_save_point(

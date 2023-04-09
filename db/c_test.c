@@ -929,7 +929,7 @@ int main(int argc, char** argv) {
     CheckGet(db, roptions, "bar", NULL);
     CheckGet(db, roptions, "box", "c");
     int pos = 0;
-    rocksdb_writebatch_iterate(wb, &pos, CheckPut, CheckDel);
+    rocksdb_writebatch_iterate(wb, &pos, CheckPut, CheckDel, NULL, NULL);
     CheckCondition(pos == 3);
     rocksdb_writebatch_clear(wb);
     rocksdb_writebatch_put(wb, "bar", 3, "b", 1);

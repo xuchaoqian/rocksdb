@@ -276,11 +276,19 @@ class WriteBatch : public WriteBatchBase {
 
     // If user-defined timestamp is enabled, then `begin_key` and `end_key`
     // both include timestamp.
-    virtual Status DeleteRangeCF(uint32_t /*column_family_id*/,
-                                 const Slice& /*begin_key*/,
-                                 const Slice& /*end_key*/) {
+    virtual Status DeleteRangeCF(uint32_t column_family_id,
+                                 const Slice& begin_key, const Slice& end_key) {
+      if (column_family_id == 0) {
+        DeleteRange(begin_key, end_key);
+        return Status::OK();
+      }
       return Status::InvalidArgument("DeleteRangeCF not implemented");
     }
+
+    // If user-defined timestamp is enabled, then `begin_key` and `end_key`
+    // both include timestamp.
+    virtual void DeleteRange(const Slice& /*begin_key*/,
+                             const Slice& /*end_key*/) {}
 
     // If user-defined timestamp is enabled, then `key` includes timestamp.
     virtual Status MergeCF(uint32_t column_family_id, const Slice& key,
